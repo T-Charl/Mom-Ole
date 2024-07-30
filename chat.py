@@ -11,10 +11,11 @@ import os
 
 import google.generativeai as genai
 from dotenv import load_dotenv
+load_dotenv()
 
 history=[]
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=os.getenv("GEMINI_CHAT_API"))
 
 # Create the model
 generation_config = {
@@ -38,9 +39,12 @@ chat_session = model.start_chat(
 )
 
 while True:
+  try:
     user_input = input("User input: ").lower()
     response = chat_session.send_message(user_input)
 
     print(response.text)
     history.append({"role":"user", "parts":user_input})
     history.append({"role":"model","parts":response})
+  except ValueError:
+    user_input = input("User input:  ").lower()
