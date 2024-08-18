@@ -2,3 +2,4 @@ google-generativeai
 dotenv
 twilio
 flask
+gunicorn
