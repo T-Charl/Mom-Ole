@@ -1,1 +1,1 @@
-wen gunicon app:chat
+web gunicon app:chat
