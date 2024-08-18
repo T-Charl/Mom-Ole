@@ -95,6 +95,7 @@ chat_session = model.start_chat(
 )
 
 def determine_media(request):
+    print("in determine media")
 
     num_media = int(request.values.get('NumMedia', 0)) 
     if num_media > 0:
@@ -190,6 +191,7 @@ def  model():
   msg.body(answer)
 
   return str(bot_resp)
+
 
 
 
