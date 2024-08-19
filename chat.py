@@ -115,7 +115,7 @@ def determine_media(request):
         return request.values.get('Body', '').lower()
 
 
-def ai_prompt(prompt):
+def ai_prompt(prompt,sess):
   try:
     chat_session = model.start_chat(history=sess['history'])
     response = chat_session.send_message(prompt)
@@ -191,6 +191,7 @@ def  model():
     print(user_input)
     
     user_id = request.form.get('From')
+    print("user_id :", user_id)
     
     bot_resp = MessagingResponse()
     msg = bot_resp.message()
@@ -202,7 +203,7 @@ def  model():
             for i in sess:
                 if i["user_id"] == user_id:
                     i["history"].append({"role": "user", "parts": [user_input]})
-                    res= ai_prompt(user_input)
+                    res= ai_prompt(user_input,sess)
                     print("Bot response", res)
                     i['history'].append({
         "role": "bot",
@@ -216,7 +217,7 @@ def  model():
         for i in sess:
             if i["user_id"] == user_id:
                 i["history"].append({"role": "user", "parts": [user_input]})
-                res = ai_prompt(user_input)
+                res = ai_prompt(user_input,sess)
                 print("Bot response", res)
                 i['history'].append({"role": "bot","parts": [res],})
                 print("BOT Answer: ", answer)
@@ -226,7 +227,7 @@ def  model():
 
     # Add user input to the session
     e = "https://invoicing-bot-0581e0fefaad.herokuapp.com/chatbot"
-    answer = ai_prompt(user_input)
+    answer = ai_prompt(user_input,sess)
     # print("BOT Answer: ", answer)
     # bot_resp = MessagingResponse()
     # msg = bot_resp.message()
