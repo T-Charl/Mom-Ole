@@ -92,9 +92,7 @@ model = genai.GenerativeModel(
   system_instruction="This system should be designed to assist users with accounting tasks, including generating detailed JSON responses for invoices, tracking expenses, revenue, and profits, and asking for daily expenses. The bot should follow these specific instructions:\n\n1. **Generate Invoices (JSON Response):**\n   - Return a JSON response with the following structure:\n     ```json\n     {\n       \"products\": [\n         {\n           \"description\": \"Product Description\",\n           \"quantity\": 0,\n           \"unit_price\": 0.0,\n           \"total\": 0.0\n         }\n       ],\n       \"subtotal\": 0.0,\n       \"markup\": 0.0,\n       \"total\": 0.0,\n       \"dollar_equivalent\": 0.0,\n       \"rate_used\": 0.0\n     }\n     ```\n   - Calculate markup at the end of the invoice:\n     - Standard items: 30% markup.\n     - Large items (fridges, TVs, furniture, washing machines, dishwashing machines): 40% markup.\n     - The model should assess if an item is standard or large and apply the appropriate markup.\n   - Ensure the JSON response is generated chronologically.\n   - Use a unique numbering system for the JSON responses.\n\n2. **Track Expenses:**\n   - Maintain a record of daily expenses.\n   - Ask users for daily expense details.\n\n3. **Track Revenue:**\n   - Record and track revenue from generated JSON responses.\n\n4. **Track Profits:**\n   - Calculate net profit based on recorded expenses and revenue.\n\nThe bot aims to be helpful, clear, and efficient, ensuring users receive accurate and timely information. The bot should avoid asking too many questions at once and instead ask prompt by prompt, keeping the questions simple. Maintain a cheerful and professional tone, using simple language. Even if the user is negative, keep a positive and helpful attitude.\n\nThe bot will use calculations to provide accurate financial records based on the information given by the user. Always ask one question at a time when requesting information from the user. For example, when asking for daily expenses, the bot will break it down into separate questions: \"What was your expense for today?\", \"Could you provide the amount?\", and \"What was the nature of this expense?\".\n\nIf asked questions not related to accounting or the scope of the bot, the bot will respectfully decline to answer and gently steer the conversation back to accounting tasks. The system should allow users to send images of receipts if they want to and use it to track expenses, but the model should not prompt the user for receipt images; it should wait for the user to offer them.\n\nThe system should confirm the final rate used to calculate the dollar equivalent in the JSON response. Remember to maintain a polite, professional, and helpful demeanor throughout the interaction.",
 )
 
-chat_session = model.start_chat(
-  history=[]
-)
+
 
 def determine_media(request):
     print("in determine media")
@@ -119,10 +117,15 @@ def determine_media(request):
 
 def ai_prompt(prompt):
   try:
+    chat_session = model.start_chat(history=sess['history'])
     response = chat_session.send_message(prompt)
     return response.text
   except ResourceExhausted:
      return "I do not understand that at the moment please try again in a Few minutes."
+
+
+users = []
+sess = []
 
 
 def process_images(image_file):
@@ -182,25 +185,52 @@ def test_routing():
 
 @app.route('/chatbot', methods=['POST'])
 def  model():
+  print("in model main function")
   try:
     user_input = determine_media(request)
     print(user_input)
     
+    user_id = request.form.get('From')
     
-    if 'conversation' not in session: #session coming from Flask
-            session['conversation'] = []
-
-    # Add user input to the session
-    session['conversation'].append(user_input)
-      
-    answer = ai_prompt(user_input)
-    
-    session['conversation'].append(answer)
-
-    print("BOT Answer: ", answer)
     bot_resp = MessagingResponse()
     msg = bot_resp.message()
-    msg.body(answer)
+    
+    
+    if user_id not in users:
+            users.append(user_id)
+            sess.append({"user_id": user_id, "history":[]})
+            for i in sess:
+                if i["user_id"] == user_id:
+                    i["history"].append({"role": "user", "parts": [user_input]})
+                    res= ai_prompt(user_input)
+                    print("Bot response", res)
+                    i['history'].append({
+        "role": "bot",
+        "parts": [res],
+    })  
+                    print("BOT Answer: ", answer)
+                    msg.body(answer)
+                    print(i)
+                    return str(bot_resp)
+    else:
+        for i in sess:
+            if i["user_id"] == user_id:
+                i["history"].append({"role": "user", "parts": [user_input]})
+                res = ai_prompt(user_input)
+                print("Bot response", res)
+                i['history'].append({"role": "bot","parts": [res],})
+                print("BOT Answer: ", answer)
+                msg.body(answer)
+                print(i)
+                return str(bot_resp)
+
+    # Add user input to the session
+    e = "https://invoicing-bot-0581e0fefaad.herokuapp.com/chatbot"
+    answer = ai_prompt(user_input)
+    # print("BOT Answer: ", answer)
+    # bot_resp = MessagingResponse()
+    # msg = bot_resp.message()
+    # msg.body(answer)
 
     return str(bot_resp)
   except Exception as e:
