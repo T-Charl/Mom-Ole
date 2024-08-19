@@ -187,7 +187,11 @@ def  model():
 
   try:
     user_input = determine_media(request)
+    print(f"\n\nUser input: {user_input}\n\n")
+
     user_id = request.form.get('From')
+    print(f"\n\nUser phone number: {user_id}\n\n")
+
     
     
     if user_id not in session: #session coming from Flask sessions
@@ -200,9 +204,7 @@ def  model():
     answer = ai_prompt(user_input)
     session["chat_history"].append(f"Bot: {answer}")
     
-    print(f"\n\nUser input: {user_input}\n\n")
-    print(f"\n\nUser phone number: {user_id}\n\n")
-    print(f"\n\nUser history: {session.get(user_id)}\n\n")
+    # print(f"\n\nUser history: {session.get(user_id)}\n\n")
     print("\n\nBOT Answer: ", answer)
 
     bot_resp = MessagingResponse()
