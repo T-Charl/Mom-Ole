@@ -53,6 +53,18 @@ https://ai.google.dev/gemini-api/docs/get-started/python
 
 
 
+class User:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.conversation_history = []
+
+    def add_message(self, message, sender="User"):
+        self.conversation_history.append(f"{sender}: {message}")
+
+    def get_conversation(self):
+        return self.conversation_history
+
+
 
 
 import google.generativeai as genai
@@ -193,19 +205,26 @@ def  model():
     
     
     if user_id not in sessions: #session coming from Flask sessions
-      sessions[user_id] = []
-            
+      sessions[user_id] = User(user_id)
+    
+    
+    # Get the user's instance
+    user_instance = sessions[user_id]
+    
+    user_instance.add_message(user_input, sender="User")
 
     # Add user input to the session
-    sessions[user_id].append(f"User role: {user_input}")
+    # sessions[user_id].append(f"User role: {user_input}")
       
     answer = ai_prompt(user_input)
-    sessions[user_id].append(f"Bot: {answer}")
+    # sessions[user_id].append(f"Bot: {answer}")
+    user_instance.add_message(user_input, sender="Bot")
+
 
     print("BOT Answer: ", answer)
     bot_resp = MessagingResponse()
-    msg = bot_resp.message()
-    msg.body(answer)
+    bot_resp.message(answer)
+    # msg.body(answer)
 
     return str(bot_resp)
   except Exception as e:
