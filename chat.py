@@ -53,18 +53,6 @@ https://ai.google.dev/gemini-api/docs/get-started/python
 
 
 
-class User:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.conversation_history = []
-
-    def add_message(self, message, sender="User"):
-        self.conversation_history.append(f"{sender}: {message}")
-
-    def get_conversation(self):
-        return self.conversation_history
-
-
 
 
 import google.generativeai as genai
@@ -86,7 +74,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 language = ""
 app.secret_key = os.getenv('FLASK_SECRET_KEY') 
-sessions = {}
+session = {}
 
 
 genai.configure(api_key=os.getenv("GEMINI_CHAT_API"))
@@ -201,30 +189,29 @@ def  model():
     print(f"User input: {user_input}")
     user_id = request.form.get('From')
     print(f"User phone number: {user_id}")
+    print(f"User history: {session.get(user_id)}")
 
     
     
-    if user_id not in sessions: #session coming from Flask sessions
-      sessions[user_id] = User(user_id)
-    
-    
-    # Get the user's instance
-    user_instance = sessions[user_id]
-    
-    user_instance.add_message(user_input, sender="User")
+    if user_id not in session: #session coming from Flask sessions
+      session[user_id] = []
+            
 
     # Add user input to the session
-    # sessions[user_id].append(f"User role: {user_input}")
+    session[user_id].append(f"User role: {user_input}")
       
     answer = ai_prompt(user_input)
-    # sessions[user_id].append(f"Bot: {answer}")
-    user_instance.add_message(user_input, sender="Bot")
-
+    session[user_id].append(f"Bot: {answer}")
+    
+    print(f"User input: {user_input}")
+    print(f"User phone number: {user_id}")
+    print(f"User history: {session.get(user_id)}")
+    print("BOT Answer: ", answer)
 
     print("BOT Answer: ", answer)
     bot_resp = MessagingResponse()
-    bot_resp.message(answer)
-    # msg.body(answer)
+    msg = bot_resp.message()
+    msg.body(answer)
 
     return str(bot_resp)
   except Exception as e:
