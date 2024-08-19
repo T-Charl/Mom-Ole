@@ -56,7 +56,7 @@ https://ai.google.dev/gemini-api/docs/get-started/python
 
 
 import google.generativeai as genai
-from flask import Flask, request
+from flask import Flask, request, session
 import requests
 from twilio.twiml.messaging_response import MessagingResponse
 from requests.auth import HTTPBasicAuth
@@ -73,6 +73,8 @@ logging.basicConfig(level=logging.DEBUG)
 # Init the Flask App
 app = Flask(__name__)
 language = ""
+app.secret_key = os.getenv('FLASK_SECRET_KEY') 
+
 
 genai.configure(api_key=os.getenv("GEMINI_CHAT_API"))
 
@@ -180,17 +182,30 @@ def test_routing():
 
 @app.route('/chatbot', methods=['POST'])
 def  model():
-  user_input = determine_media(request)
-  print(user_input)
+  try:
+    user_input = determine_media(request)
+    print(user_input)
     
-  answer = ai_prompt(user_input)
+    
+    if 'conversation' not in session: #session coming from Flask
+            session['conversation'] = []
 
-  print("BOT Answer: ", answer)
-  bot_resp = MessagingResponse()
-  msg = bot_resp.message()
-  msg.body(answer)
+    # Add user input to the session
+    session['conversation'].append(user_input)
+      
+    answer = ai_prompt(user_input)
+    
+    session['conversation'].append(answer)
 
-  return str(bot_resp)
+    print("BOT Answer: ", answer)
+    bot_resp = MessagingResponse()
+    msg = bot_resp.message()
+    msg.body(answer)
+
+    return str(bot_resp)
+  except Exception as e:
+    print(f"Error in chat.p model: {e}")
+    return "An error occured", 500
 
 
 
