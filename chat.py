@@ -120,6 +120,7 @@ def determine_media(request):
 
 def ai_prompt(prompt):
   try:
+    print("in AI prompt")
     response = chat_session.send_message(prompt)
     return response.text
   except ResourceExhausted:
