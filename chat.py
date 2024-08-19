@@ -186,29 +186,24 @@ def  model():
 
   try:
     user_input = determine_media(request)
-    print(f"User input: {user_input}")
     user_id = request.form.get('From')
-    print(f"User phone number: {user_id}")
-    print(f"User history: {session.get(user_id)}")
-
     
     
     if user_id not in session: #session coming from Flask sessions
-      session[user_id] = []
+      session["chat-history"] = []
             
 
     # Add user input to the session
-    session[user_id].append(f"User role: {user_input}")
+    session["chat_history"].append(f"User: {user_input}")
       
     answer = ai_prompt(user_input)
-    session[user_id].append(f"Bot: {answer}")
+    session["chat_history"].append(f"Bot: {answer}")
     
-    print(f"User input: {user_input}")
-    print(f"User phone number: {user_id}")
-    print(f"User history: {session.get(user_id)}")
-    print("BOT Answer: ", answer)
+    print(f"\n\nUser input: {user_input}\n\n")
+    print(f"\n\nUser phone number: {user_id}\n\n")
+    print(f"\n\nUser history: {session.get(user_id)}\n\n")
+    print("\n\nBOT Answer: ", answer)
 
-    print("BOT Answer: ", answer)
     bot_resp = MessagingResponse()
     msg = bot_resp.message()
     msg.body(answer)
