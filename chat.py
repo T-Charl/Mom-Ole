@@ -61,6 +61,7 @@ import requests
 from twilio.twiml.messaging_response import MessagingResponse
 from requests.auth import HTTPBasicAuth
 import os
+from flask_session import Session
 from google.api_core.exceptions import ResourceExhausted
 from dotenv import load_dotenv
 load_dotenv()
@@ -76,6 +77,10 @@ language = ""
 app.secret_key = os.getenv('FLASK_SECRET_KEY') 
 session = {}
 
+app.config['SECRET_KEY'] = 'skyf nyash'
+app.config['SESSION_TYPE'] = 'filesystem'
+
+Session(app)
 
 genai.configure(api_key=os.getenv("GEMINI_CHAT_API"))
 
@@ -119,8 +124,8 @@ def determine_media(request):
 
 
 def ai_prompt(prompt):
+  print("in AI prompt")
   try:
-    print("in AI prompt")
     response = chat_session.send_message(prompt)
     return response.text
   except ResourceExhausted:
@@ -192,7 +197,6 @@ def  model():
     user_id = request.form.get('From')
     print(f"\n\nUser phone number: {user_id}\n\n")
 
-    
     
     if user_id not in session: #session coming from Flask sessions
       session["chat-history"] = []
